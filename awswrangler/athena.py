@@ -33,6 +33,8 @@ class Athena:
             return "object"
         elif dtype in ["timestamp", "date"]:
             return "datetime64"
+        elif dtype in ["decimal"]:
+            return "float64"
         else:
             raise UnsupportedType(f"Unsupported Athena type: {dtype}")
 
