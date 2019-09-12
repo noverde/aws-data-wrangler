@@ -22,7 +22,7 @@ setup(
                            exclude=["tests"]),
     python_requires=">=3.6",
     install_requires=[
-        "pyarrow>=0.14.1",
+        "pyarrow>=0.14.0",
         "pandas>=0.25.1",
         "botocore>=1.12.224",
         "boto3>=1.9.224",
