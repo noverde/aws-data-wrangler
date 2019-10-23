@@ -2,7 +2,7 @@
 Module to handle all utilities related to EMR (Elastic Map Reduce)
 https://aws.amazon.com/emr/
 """
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 import logging
 import json
 
@@ -94,6 +94,10 @@ class EMR:
                     },
                     "Configurations": []
                 })
+
+            if pars["additional_configurations"]:
+                for config in pars["additional_configurations"]:
+                    args["Configurations"].append(config)
 
         # Applications
         if pars["applications"]:
@@ -273,6 +277,7 @@ class EMR:
                        spark_glue_catalog: bool = True,
                        hive_glue_catalog: bool = True,
                        presto_glue_catalog: bool = True,
+                       additional_configurations: Optional[List[Any]] = None,
                        bootstraps_paths: Optional[List[str]] = None,
                        debugging: bool = True,
                        applications: Optional[List[str]] = None,
