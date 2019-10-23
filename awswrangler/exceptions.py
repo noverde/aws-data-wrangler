@@ -2,6 +2,10 @@ class UnsupportedType(Exception):
     pass
 
 
+class UndetectedType(Exception):
+    pass
+
+
 class UnsupportedFileFormat(Exception):
     pass
 
@@ -63,4 +67,16 @@ class QueryCancelled(Exception):
 
 
 class QueryFailed(Exception):
+    pass
+
+
+class InvalidSerDe(Exception):
+    pass
+
+
+class ApiError(Exception):
+    pass
+
+
+class InvalidCompression(Exception):
     pass

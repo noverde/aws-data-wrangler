@@ -1,10 +1,11 @@
 #!/bin/bash
 
+set -e
+
 cd ..
-rm -rf *.pytest_cache
-yapf --in-place --recursive setup.py awswrangler testing/test_awswrangler
-flake8 setup.py awswrangler testing/test_awswrangler
 pip install -e .
-pytest testing/test_awswrangler awswrangler
-rm -rf *.pytest_cache
+yapf --in-place --recursive setup.py awswrangler testing/test_awswrangler
+mypy awswrangler
+flake8 setup.py awswrangler testing/test_awswrangler
+pytest --cov=awswrangler testing/test_awswrangler
 cd testing

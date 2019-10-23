@@ -131,6 +131,7 @@ Resources:
     Properties:
       CatalogId: !Ref AWS::AccountId
       DatabaseInput:
+        Name: awswrangler_test
         Description: AWS Data Wrangler Test Arena - Glue Database
 
   LogGroup:
@@ -171,3 +172,6 @@ Outputs:
   LogStream:
     Value: !Ref LogStream
     Description: LogStream name.
+  SubnetId:
+    Value: !Ref SubnetId
+    Description: Subnet ID

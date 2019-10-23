@@ -8,9 +8,7 @@ import pandas
 
 from awswrangler import Session
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s][%(levelname)s][%(name)s][%(funcName)s] %(message)s")
+logging.basicConfig(level=logging.INFO, format="[%(asctime)s][%(levelname)s][%(name)s][%(funcName)s] %(message)s")
 logging.getLogger("awswrangler").setLevel(logging.DEBUG)
 
 
@@ -58,8 +56,7 @@ def write_fake_objects(bucket, path, num):
 
 @pytest.fixture(scope="module")
 def cloudformation_outputs():
-    response = boto3.client("cloudformation").describe_stacks(
-        StackName="aws-data-wrangler-test-arena")
+    response = boto3.client("cloudformation").describe_stacks(StackName="aws-data-wrangler-test-arena")
     outputs = {}
     for output in response.get("Stacks")[0].get("Outputs"):
         outputs[output.get("OutputKey")] = output.get("OutputValue")
@@ -147,12 +144,8 @@ def test_get_objects_sizes(session, bucket, objects_num):
     print("Starting deletes...")
     session.s3.delete_objects(path=path)
     print("Starting writes...")
-    write_fake_objects(bucket, f"objs-get-objects-sizes-{objects_num}/",
-                       objects_num)
-    objects_paths = [
-        f"s3://{bucket}/objs-get-objects-sizes-{objects_num}/{i}"
-        for i in range(objects_num)
-    ]
+    write_fake_objects(bucket, f"objs-get-objects-sizes-{objects_num}/", objects_num)
+    objects_paths = [f"s3://{bucket}/objs-get-objects-sizes-{objects_num}/{i}" for i in range(objects_num)]
     print("Starting gets...")
     objects_sizes = session.s3.get_objects_sizes(objects_paths=objects_paths)
     print("Starting deletes...")
@@ -203,8 +196,7 @@ def test_copy_listed_objects(session, bucket, database, mode, procs_io_bound):
     )
     print("Asserting...")
     sleep(1)
-    dataframe2 = session.pandas.read_sql_athena(
-        sql="select * from test_move_objects_0", database=database)
+    dataframe2 = session.pandas.read_sql_athena(sql="select * from test_move_objects_0", database=database)
     if mode == "append":
         assert 2 * len(dataframe.index) == len(dataframe2.index)
     else:

@@ -2,8 +2,8 @@ import os
 import logging
 import importlib
 
-import boto3
-from botocore.config import Config
+import boto3  # type: ignore
+from botocore.config import Config  # type: ignore
 
 from awswrangler.s3 import S3
 from awswrangler.athena import Athena
@@ -11,9 +11,10 @@ from awswrangler.cloudwatchlogs import CloudWatchLogs
 from awswrangler.pandas import Pandas
 from awswrangler.glue import Glue
 from awswrangler.redshift import Redshift
+from awswrangler.emr import EMR
 
 PYSPARK_INSTALLED = False
-if importlib.util.find_spec("pyspark"):
+if importlib.util.find_spec("pyspark"):  # type: ignore
     PYSPARK_INSTALLED = True
     from awswrangler.spark import Spark
 
@@ -43,6 +44,7 @@ class Session:
             spark_session=None,
             procs_cpu_bound=os.cpu_count(),
             procs_io_bound=os.cpu_count() * PROCS_IO_BOUND_FACTOR,
+            athena_workgroup="primary",
     ):
         """
         Most parameters inherit from Boto3 or Pyspark.
@@ -59,21 +61,16 @@ class Session:
         :param s3_additional_kwargs: Passed on to s3fs (https://s3fs.readthedocs.io/en/latest/#serverside-encryption)
         :param spark_context: Spark Context (pyspark.SparkContext)
         :param spark_session: Spark Session (pyspark.sql.SparkSession)
-        :param procs_cpu_bound: number of processes that can be used in single
-        node applications for CPU bound case (Default: os.cpu_count())
-        :param procs_io_bound: number of processes that can be used in single
-        node applications for I/O bound cases (Default: os.cpu_count() * PROCS_IO_BOUND_FACTOR)
+        :param procs_cpu_bound: number of processes that can be used in single node applications for CPU bound case (Default: os.cpu_count())
+        :param procs_io_bound: number of processes that can be used in single node applications for I/O bound cases (Default: os.cpu_count() * PROCS_IO_BOUND_FACTOR)
+        :param athena_workgroup: Default AWS Athena Workgroup (str)
         """
-        self._profile_name = (boto3_session.profile_name
-                              if boto3_session else profile_name)
-        self._aws_access_key_id = (boto3_session.get_credentials().access_key
-                                   if boto3_session else aws_access_key_id)
-        self._aws_secret_access_key = (
-            boto3_session.get_credentials().secret_key
-            if boto3_session else aws_secret_access_key)
+        self._profile_name = (boto3_session.profile_name if boto3_session else profile_name)
+        self._aws_access_key_id = (boto3_session.get_credentials().access_key if boto3_session else aws_access_key_id)
+        self._aws_secret_access_key = (boto3_session.get_credentials().secret_key
+                                       if boto3_session else aws_secret_access_key)
         self._botocore_max_retries = botocore_max_retries
-        self._botocore_config = Config(
-            retries={"max_attempts": self._botocore_max_retries})
+        self._botocore_config = Config(retries={"max_attempts": self._botocore_max_retries})
         self._aws_session_token = aws_session_token
         self._region_name = boto3_session.region_name if boto3_session else region_name
         self._s3_additional_kwargs = s3_additional_kwargs
@@ -81,6 +78,7 @@ class Session:
         self._spark_session = spark_session
         self._procs_cpu_bound = procs_cpu_bound
         self._procs_io_bound = procs_io_bound
+        self._athena_workgroup = athena_workgroup
         self._primitives = None
         self._load_new_primitives()
         if boto3_session:
@@ -90,6 +88,7 @@ class Session:
         self._s3 = None
         self._athena = None
         self._cloudwatchlogs = None
+        self._emr = None
         self._pandas = None
         self._glue = None
         self._redshift = None
@@ -112,10 +111,8 @@ class Session:
         self._boto3_session = boto3.Session(**args)
 
         self._profile_name = self._boto3_session.profile_name
-        self._aws_access_key_id = self._boto3_session.get_credentials(
-        ).access_key
-        self._aws_secret_access_key = self._boto3_session.get_credentials(
-        ).secret_key
+        self._aws_access_key_id = self._boto3_session.get_credentials().access_key
+        self._aws_secret_access_key = self._boto3_session.get_credentials().secret_key
         self._region_name = self._boto3_session.region_name
 
     def _load_new_primitives(self):
@@ -134,6 +131,7 @@ class Session:
             botocore_config=self._botocore_config,
             procs_cpu_bound=self._procs_cpu_bound,
             procs_io_bound=self._procs_io_bound,
+            athena_workgroup=self._athena_workgroup,
         )
 
     @property
@@ -185,6 +183,10 @@ class Session:
         return self._procs_io_bound
 
     @property
+    def athena_workgroup(self):
+        return self._athena_workgroup
+
+    @property
     def boto3_session(self):
         return self._boto3_session
 
@@ -209,6 +211,12 @@ class Session:
         if not self._cloudwatchlogs:
             self._cloudwatchlogs = CloudWatchLogs(session=self)
         return self._cloudwatchlogs
+
+    @property
+    def emr(self):
+        if not self._emr:
+            self._emr = EMR(session=self)
+        return self._emr
 
     @property
     def pandas(self):
@@ -255,6 +263,7 @@ class SessionPrimitives:
             botocore_config=None,
             procs_cpu_bound=None,
             procs_io_bound=None,
+            athena_workgroup=None,
     ):
         """
         Most parameters inherit from Boto3.
@@ -268,10 +277,9 @@ class SessionPrimitives:
         :param botocore_max_retries: Botocore max retries
         :param s3_additional_kwargs: Passed on to s3fs (https://s3fs.readthedocs.io/en/latest/#serverside-encryption)
         :param botocore_config: Botocore configurations
-        :param procs_cpu_bound: number of processes that can be used in single
-        node applications for CPU bound case (Default: os.cpu_count())
-        :param procs_io_bound: number of processes that can be used in single
-        node applications for I/O bound cases (Default: os.cpu_count() * PROCS_IO_BOUND_FACTOR)
+        :param procs_cpu_bound: number of processes that can be used in single node applications for CPU bound case (Default: os.cpu_count())
+        :param procs_io_bound: number of processes that can be used in single node applications for I/O bound cases (Default: os.cpu_count() * PROCS_IO_BOUND_FACTOR)
+        :param athena_workgroup: Default AWS Athena Workgroup (str)
         """
         self._profile_name = profile_name
         self._aws_access_key_id = aws_access_key_id
@@ -283,6 +291,7 @@ class SessionPrimitives:
         self._botocore_config = botocore_config
         self._procs_cpu_bound = procs_cpu_bound
         self._procs_io_bound = procs_io_bound
+        self._athena_workgroup = athena_workgroup
 
     @property
     def profile_name(self):
@@ -325,19 +334,22 @@ class SessionPrimitives:
         return self._procs_io_bound
 
     @property
+    def athena_workgroup(self):
+        return self._athena_workgroup
+
+    @property
     def session(self):
         """
         Reconstruct the session from primitives
         :return: awswrangler.session.Session
         """
-        return Session(
-            profile_name=self._profile_name,
-            aws_access_key_id=self._aws_access_key_id,
-            aws_secret_access_key=self._aws_secret_access_key,
-            aws_session_token=self._aws_session_token,
-            region_name=self._region_name,
-            botocore_max_retries=self._botocore_max_retries,
-            s3_additional_kwargs=self._s3_additional_kwargs,
-            procs_cpu_bound=self._procs_cpu_bound,
-            procs_io_bound=self._procs_io_bound,
-        )
+        return Session(profile_name=self._profile_name,
+                       aws_access_key_id=self._aws_access_key_id,
+                       aws_secret_access_key=self._aws_secret_access_key,
+                       aws_session_token=self._aws_session_token,
+                       region_name=self._region_name,
+                       botocore_max_retries=self._botocore_max_retries,
+                       s3_additional_kwargs=self._s3_additional_kwargs,
+                       procs_cpu_bound=self._procs_cpu_bound,
+                       procs_io_bound=self._procs_io_bound,
+                       athena_workgroup=self._athena_workgroup)

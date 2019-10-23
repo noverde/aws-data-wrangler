@@ -12,8 +12,7 @@ QUERY_WAIT_POLLING_DELAY = 0.2  # MILLISECONDS
 class CloudWatchLogs:
     def __init__(self, session):
         self._session = session
-        self._client_logs = session.boto3_session.client(
-            service_name="logs", config=session.botocore_config)
+        self._client_logs = session.boto3_session.client(service_name="logs", config=session.botocore_config)
 
     def start_query(self,
                     query,
@@ -32,6 +31,7 @@ class CloudWatchLogs:
         :param limit: The maximum number of log events to return in the query.
         :return: Query ID
         """
+        logger.debug(f"log_group_names: {log_group_names}")
         start_timestamp = int(1000 * start_time.timestamp())
         end_timestamp = int(1000 * end_time.timestamp())
         logger.debug(f"start_timestamp: {start_timestamp}")

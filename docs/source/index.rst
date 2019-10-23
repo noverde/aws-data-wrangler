@@ -20,12 +20,14 @@ Pandas
 * Pandas -> Redshift (Parallel)
 * CSV (S3) -> Pandas (One shot or Batching)
 * Athena -> Pandas (One shot or Batching)
-* CloudWatch Logs Insights -> Pandas (NEW)
-* Encrypt Pandas Dataframes on S3 with KMS keys (NEW)
+* CloudWatch Logs Insights -> Pandas
+* Encrypt Pandas Dataframes on S3 with KMS keys
 
 PySpark
 ```````
-* PySpark -> Redshift (Parallel) (NEW)
+* PySpark -> Redshift (Parallel)
+* Register Glue table from Dataframe stored on S3
+* Flatten nested DataFrames (NEW)
 
 General
 ```````
@@ -35,7 +37,13 @@ General
 * Delete NOT listed S3 objects (Parallel)
 * Copy listed S3 objects (Parallel)
 * Get the size of S3 objects (Parallel)
-* Get CloudWatch Logs Insights query results (NEW)
+* Get CloudWatch Logs Insights query results
+* Load partitions on Athena/Glue table (repair table)
+* Create EMR cluster (For humans) (NEW)
+* Terminate EMR cluster (NEW)
+* Get EMR cluster state (NEW)
+* Submit EMR step (For humans) (NEW)
+* Get EMR step state (NEW)
 
 
 Table Of Contents
@@ -47,5 +55,6 @@ Table Of Contents
    installation
    examples
    divingdeep
+   contributing
    api/modules
    license

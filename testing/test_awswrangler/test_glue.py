@@ -2,20 +2,17 @@ import logging
 
 import pytest
 import boto3
-import pandas
+import pandas as pd
 
 from awswrangler import Session
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s][%(levelname)s][%(name)s][%(funcName)s] %(message)s")
+logging.basicConfig(level=logging.INFO, format="[%(asctime)s][%(levelname)s][%(name)s][%(funcName)s] %(message)s")
 logging.getLogger("awswrangler").setLevel(logging.DEBUG)
 
 
 @pytest.fixture(scope="module")
 def cloudformation_outputs():
-    response = boto3.client("cloudformation").describe_stacks(
-        StackName="aws-data-wrangler-test-arena")
+    response = boto3.client("cloudformation").describe_stacks(StackName="aws-data-wrangler-test-arena")
     outputs = {}
     for output in response.get("Stacks")[0].get("Outputs"):
         outputs[output.get("OutputKey")] = output.get("OutputValue")
@@ -53,7 +50,7 @@ def table(
         bucket,
         database,
 ):
-    dataframe = pandas.read_csv("data_samples/micro.csv")
+    dataframe = pd.read_csv("data_samples/micro.csv")
     path = f"s3://{bucket}/test/"
     table = "test"
     session.pandas.to_parquet(dataframe=dataframe,
@@ -70,8 +67,7 @@ def table(
 
 
 def test_get_athena_types(session, database, table):
-    dtypes = session.glue.get_table_athena_types(database=database,
-                                                 table=table)
+    dtypes = session.glue.get_table_athena_types(database=database, table=table)
     assert dtypes["id"] == "bigint"
     assert dtypes["value"] == "double"
     assert dtypes["name"] == "string"
@@ -79,8 +75,7 @@ def test_get_athena_types(session, database, table):
 
 
 def test_get_table_python_types(session, database, table):
-    ptypes = session.glue.get_table_python_types(database=database,
-                                                 table=table)
+    ptypes = session.glue.get_table_python_types(database=database, table=table)
     assert ptypes["id"] == int
     assert ptypes["value"] == float
     assert ptypes["name"] == str
